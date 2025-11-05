@@ -203,6 +203,7 @@ public class PlayerMovement : MonoBehaviour
         controller.enabled = true;
     }
 
+    // Collisiones no trigger
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         // 1) Detectar si pisamos una plataforma en movimiento
@@ -215,26 +216,52 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 2) Detectar checkpoints
+        // 2) Detectar checkpoints (collider normal)
         if (hit.collider.CompareTag(checkpointTag))
         {
-            // Guardamos la posicion de ese checkpoint
             lastCheckpointPosition = hit.collider.transform.position;
-            // Opcional: Debug para confirmar
             Debug.Log("Checkpoint actualizado: " + lastCheckpointPosition);
         }
 
-        // 3) Detectar zona de muerte (suelo o plano inferior)
+        // 3) Detectar zona de muerte (collider normal)
         if (hit.collider.CompareTag(deathZoneTag))
         {
+            // Registrar caida en el GameManager
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RegisterFall();
+            }
+
             RespawnAtCheckpoint();
         }
 
-        // 4) Detectar coleccionables (verde/rojo)
+        // 4) Detectar coleccionables (si usan collider normal)
         CollectableItem collectible = hit.collider.GetComponent<CollectableItem>();
         if (collectible != null)
         {
             collectible.Collect();
+        }
+    }
+
+    // Collisiones trigger (por si algun checkpoint o deathzone tiene IsTrigger activado)
+    private void OnTriggerEnter(Collider other)
+    {
+        // Checkpoint con IsTrigger
+        if (other.CompareTag(checkpointTag))
+        {
+            lastCheckpointPosition = other.transform.position;
+            Debug.Log("Checkpoint actualizado (Trigger): " + lastCheckpointPosition);
+        }
+
+        // DeathZone con IsTrigger
+        if (other.CompareTag(deathZoneTag))
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RegisterFall();
+            }
+
+            RespawnAtCheckpoint();
         }
     }
 }

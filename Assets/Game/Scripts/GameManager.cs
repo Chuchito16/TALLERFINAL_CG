@@ -4,22 +4,29 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    // Tiempo total
     private float globalTime = 0f;
+    private bool timerRunning = true;
 
+    // Puntaje e items
     private int score = 0;
     private int itemsCount = 0;
 
-    public float GlobalTime { get => globalTime; set => globalTime = value; }
-    public int Score { get => score; set => score = value; }
-    public int ItemsCount { get => itemsCount; set => itemsCount = value; }
+    // Caidas
+    private int fallsCount = 0;
 
-    void Awake()
+    // Propiedades publicas de solo lectura
+    public float GlobalTime { get { return globalTime; } }
+    public int Score { get { return score; } }
+    public int ItemsCount { get { return itemsCount; } }
+    public int FallsCount { get { return fallsCount; } }
+
+    private void Awake()
     {
-        // Singleton
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // opcional, persiste entre escenas
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -27,22 +34,35 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Update()
     {
-        
+        if (timerRunning)
+        {
+            globalTime += Time.deltaTime;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    // ===== METODOS PUBLICOS =====
+
+    public void ResetAll()
     {
-        
+        globalTime = 0f;
+        score = 0;
+        itemsCount = 0;
+        fallsCount = 0;
+        timerRunning = true;
+    }
+
+    public void StopTimer()
+    {
+        timerRunning = false;
     }
 
     public void AddTime(float timeScene)
     {
         globalTime += timeScene;
     }
+
     public void AddScore(int scoreItem)
     {
         score += scoreItem;
@@ -51,5 +71,10 @@ public class GameManager : MonoBehaviour
     public void AddItem()
     {
         itemsCount++;
+    }
+
+    public void RegisterFall()
+    {
+        fallsCount++;
     }
 }
