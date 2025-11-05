@@ -4,18 +4,15 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    // Tiempo total
+    // Tiempo total (lo controla el Timer)
     private float globalTime = 0f;
-    private bool timerRunning = true;
 
-    // Puntaje e items
+    // Puntaje, items, caidas
     private int score = 0;
     private int itemsCount = 0;
-
-    // Caidas
     private int fallsCount = 0;
 
-    // Propiedades publicas de solo lectura
+    // Propiedades de solo lectura
     public float GlobalTime { get { return globalTime; } }
     public int Score { get { return score; } }
     public int ItemsCount { get { return itemsCount; } }
@@ -23,26 +20,24 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        // Singleton
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    private void Update()
+    // ========= METODOS DE TIEMPO =========
+
+    // El Timer llama a esto para actualizar el tiempo global
+    public void SetTime(float time)
     {
-        if (timerRunning)
-        {
-            globalTime += Time.deltaTime;
-        }
+        globalTime = time;
     }
-
-    // ===== METODOS PUBLICOS =====
 
     public void ResetAll()
     {
@@ -50,18 +45,9 @@ public class GameManager : MonoBehaviour
         score = 0;
         itemsCount = 0;
         fallsCount = 0;
-        timerRunning = true;
     }
 
-    public void StopTimer()
-    {
-        timerRunning = false;
-    }
-
-    public void AddTime(float timeScene)
-    {
-        globalTime += timeScene;
-    }
+    // ========= METODOS DE SCORE / ITEMS / CAIDAS =========
 
     public void AddScore(int scoreItem)
     {
