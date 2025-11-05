@@ -20,6 +20,12 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Si se asigna, el movimiento sera relativo a esta camara (ej: camara orbital).")]
     public Camera mouseOrbitCamera;
 
+    // Plataformas en movimiento
+    [Header("Moving Platforms")]
+    [SerializeField] private string movingPlatformTag = "MovingPlatform";
+    private Transform currentPlatform;
+    private Vector3 lastPlatformPosition;
+
     private CharacterController controller;
     private Animator anim;
 
@@ -57,14 +63,18 @@ public class PlayerMovement : MonoBehaviour
         // Solo marcamos la intencion de saltar cuando la accion se "performea"
         if (ctx.performed)
         {
-            // Debug opcional para verificar que el evento se dispara:
-            // Debug.Log("OnJump PERFORMED");
             jumpRequest = true;
         }
     }
 
     private void Update()
     {
+        // Si no esta en el suelo, olvida la plataforma actual
+        if (!controller.isGrounded)
+        {
+            currentPlatform = null;
+        }
+
         // 1) Calcular direccion de movimiento (relativa a camara si existe)
         Vector3 input = new Vector3(moveInput.x, 0f, moveInput.y); // x=strafe, z=forward
 
@@ -80,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
             camRight.y = 0f;
             camRight.Normalize();
 
-            // OJO: aqui usamos input.x e input.z (no input.y)
+            // aqui usamos input.x e input.z
             moveWorld = camRight * input.x + camFwd * input.z;
         }
         else
@@ -109,7 +119,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if (velocity.y < 0f)
             {
-                // Pequeño empuje hacia abajo para mantener grounded
+                // Pequeno empuje hacia abajo para mantener grounded
                 velocity.y = -2f;
             }
 
@@ -119,21 +129,61 @@ public class PlayerMovement : MonoBehaviour
                 // v = sqrt(altura * -2 * gravedad)
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 jumpRequest = false;
+
+                // al saltar, ya no seguimos la plataforma
+                currentPlatform = null;
             }
         }
 
         // 5) Aplicar gravedad
         velocity.y += gravity * Time.deltaTime;
 
-        // 6) Mover personaje (horizontal + vertical) en una sola llamada
+        // 6) Mover personaje (horizontal + vertical)
         Vector3 finalMove = horizontal;
         finalMove.y = velocity.y;
         controller.Move(finalMove * Time.deltaTime);
+
+        // 6b) Aplicar movimiento extra de la plataforma si estamos sobre una
+        HandlePlatformMovement();
 
         // 7) Parametros del Animator (Blend Tree 2D Freeform: velX, velY)
         velXCur = Mathf.SmoothDamp(velXCur, moveInput.x, ref velXCur, animDamp);
         velYCur = Mathf.SmoothDamp(velYCur, moveInput.y, ref velYCur, animDamp);
         anim.SetFloat(VelX, velXCur);
         anim.SetFloat(VelY, velYCur);
+    }
+
+    private void HandlePlatformMovement()
+    {
+        if (currentPlatform == null) return;
+
+        Vector3 platformDelta = currentPlatform.position - lastPlatformPosition;
+        if (platformDelta.sqrMagnitude > 0f)
+        {
+            // Este Move extra hace que el player se mueva con la plataforma
+            controller.Move(platformDelta);
+        }
+
+        lastPlatformPosition = currentPlatform.position;
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        // 1) Detectar si pisamos una plataforma en movimiento
+        if (hit.collider.CompareTag(movingPlatformTag))
+        {
+            if (currentPlatform != hit.collider.transform)
+            {
+                currentPlatform = hit.collider.transform;
+                lastPlatformPosition = currentPlatform.position;
+            }
+        }
+
+        // 2) Detectar coleccionables (verde/rojo)
+        CollectableItem collectible = hit.collider.GetComponent<CollectableItem>();
+        if (collectible != null)
+        {
+            collectible.Collect();
+        }
     }
 }

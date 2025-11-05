@@ -4,17 +4,21 @@ using UnityEngine.SceneManagement;
 
 public class CollectableItem : MonoBehaviour
 {
-    public enum ItemType { Cereza, Kiwi, Bandera } 
+    public enum ItemType
+    {
+        CapsulaVerde,
+        CapsulaRoja
+    }
+
     public ItemType itemType;
-    public int itemValue = 0;
+    public int itemValue = 10;      // Valor base (magnitud). El signo se decide por el tipo.
     public float clickDistance = 3f;
 
     private Transform player;
-    private Camera mainCamera; 
+    private Camera mainCamera;
 
     void Start()
     {
-
         if (mainCamera == null)
             mainCamera = Camera.main;
 
@@ -40,29 +44,44 @@ public class CollectableItem : MonoBehaviour
                     }
                     else
                     {
-                        Debug.Log("Demasiado lejos para recoger el ítem.");
+                        Debug.Log("Demasiado lejos para recoger el item.");
                     }
                 }
             }
         }
     }
 
+    // === NUEVO: metodo publico que llama a CollectItem ===
+    public void Collect()
+    {
+        CollectItem();
+    }
+
     void CollectItem()
     {
+        int deltaScore = Mathf.Abs(itemValue);
+
+        // Verde suma, roja resta
+        if (itemType == ItemType.CapsulaRoja)
+        {
+            deltaScore = -deltaScore;
+        }
+
         // Sumar al GameManager
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.AddScore(itemValue);
+            GameManager.Instance.AddScore(deltaScore);
             GameManager.Instance.AddItem();
         }
 
-        Debug.Log($"Recolectado: {name} (+{itemValue} puntos)");
+        Debug.Log("Recolectado: " + name + " (" + deltaScore + " puntos)");
+
         Destroy(gameObject);
 
-        if (GameManager.Instance.ItemsCount >= 15)
+        if (GameManager.Instance != null && GameManager.Instance.ItemsCount >= 15)
         {
             string currentScene = SceneManager.GetActiveScene().name;
-            if (currentScene == "Scene_1") 
+            if (currentScene == "Scene_1")
             {
                 SceneManager.LoadScene("Scene_2");
             }
