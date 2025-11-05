@@ -39,6 +39,7 @@ public class PlayerMovement : MonoBehaviour
     // Hash para parametros del Animator (evita typos y es mas rapido)
     private static readonly int VelX = Animator.StringToHash("velX");
     private static readonly int VelY = Animator.StringToHash("velY");
+    private static readonly int JumpTrig = Animator.StringToHash("Jump");
 
     // Suavizado para el Blend Tree
     [SerializeField] private float animDamp = 0.05f;
@@ -57,12 +58,14 @@ public class PlayerMovement : MonoBehaviour
         moveInput = ctx.ReadValue<Vector2>(); // (-1..1 , -1..1)
     }
 
-    // Evento de salto
+    // Evento de salto (solo marca la intencion)
     public void OnJump(InputAction.CallbackContext ctx)
     {
-        // Solo marcamos la intencion de saltar cuando la accion se "performea"
         if (ctx.performed)
         {
+            // Debug para verificar que el evento se dispara
+            // Debug.Log("OnJump PERFORMED");
+
             jumpRequest = true;
         }
     }
@@ -90,7 +93,7 @@ public class PlayerMovement : MonoBehaviour
             camRight.y = 0f;
             camRight.Normalize();
 
-            // aqui usamos input.x e input.z
+            // aqui usamos input.x e input.z (no input.y)
             moveWorld = camRight * input.x + camFwd * input.z;
         }
         else
@@ -125,13 +128,19 @@ public class PlayerMovement : MonoBehaviour
 
             if (jumpRequest)
             {
-                // Formula clasica de salto:
-                // v = sqrt(altura * -2 * gravedad)
+                // Formula clasica de salto: v = sqrt(altura * -2 * gravedad)
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 jumpRequest = false;
 
                 // al saltar, ya no seguimos la plataforma
                 currentPlatform = null;
+
+                // Disparar animacion de salto
+                if (anim != null)
+                {
+                    anim.ResetTrigger(JumpTrig); // opcional, para limpiar
+                    anim.SetTrigger(JumpTrig);
+                }
             }
         }
 
