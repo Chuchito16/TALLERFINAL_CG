@@ -221,7 +221,7 @@ public class PlayerMovement : MonoBehaviour
             // Guardamos la posicion de ese checkpoint
             lastCheckpointPosition = hit.collider.transform.position;
             // Opcional: Debug para confirmar
-            // Debug.Log("Checkpoint actualizado: " + lastCheckpointPosition);
+            Debug.Log("Checkpoint actualizado: " + lastCheckpointPosition);
         }
 
         // 3) Detectar zona de muerte (suelo o plano inferior)
