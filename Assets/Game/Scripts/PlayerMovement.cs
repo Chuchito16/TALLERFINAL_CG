@@ -26,6 +26,14 @@ public class PlayerMovement : MonoBehaviour
     private Transform currentPlatform;
     private Vector3 lastPlatformPosition;
 
+    // Checkpoints / Respawn
+    [Header("Checkpoints")]
+    [SerializeField] private Transform defaultSpawnPoint; // punto inicial
+    [SerializeField] private string checkpointTag = "Checkpoint";
+    [SerializeField] private string deathZoneTag = "DeathZone";
+
+    private Vector3 lastCheckpointPosition;
+
     private CharacterController controller;
     private Animator anim;
 
@@ -49,6 +57,12 @@ public class PlayerMovement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+
+        // Posicion inicial del respawn
+        if (defaultSpawnPoint != null)
+            lastCheckpointPosition = defaultSpawnPoint.position;
+        else
+            lastCheckpointPosition = transform.position;
     }
 
     // ====== NUEVO INPUT SYSTEM ======
@@ -63,9 +77,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (ctx.performed)
         {
-            // Debug para verificar que el evento se dispara
-            // Debug.Log("OnJump PERFORMED");
-
             jumpRequest = true;
         }
     }
@@ -138,7 +149,7 @@ public class PlayerMovement : MonoBehaviour
                 // Disparar animacion de salto
                 if (anim != null)
                 {
-                    anim.ResetTrigger(JumpTrig); // opcional, para limpiar
+                    anim.ResetTrigger(JumpTrig); // opcional
                     anim.SetTrigger(JumpTrig);
                 }
             }
@@ -176,6 +187,22 @@ public class PlayerMovement : MonoBehaviour
         lastPlatformPosition = currentPlatform.position;
     }
 
+    private void RespawnAtCheckpoint()
+    {
+        // Deshabilitar el controller para mover sin interferencias
+        controller.enabled = false;
+
+        // Colocar al jugador en el ultimo checkpoint (un poco arriba)
+        Vector3 respawnPos = lastCheckpointPosition + Vector3.up * 0.5f;
+        transform.position = respawnPos;
+
+        // Resetear velocidad y plataforma
+        velocity = Vector3.zero;
+        currentPlatform = null;
+
+        controller.enabled = true;
+    }
+
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         // 1) Detectar si pisamos una plataforma en movimiento
@@ -188,7 +215,22 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 2) Detectar coleccionables (verde/rojo)
+        // 2) Detectar checkpoints
+        if (hit.collider.CompareTag(checkpointTag))
+        {
+            // Guardamos la posicion de ese checkpoint
+            lastCheckpointPosition = hit.collider.transform.position;
+            // Opcional: Debug para confirmar
+            // Debug.Log("Checkpoint actualizado: " + lastCheckpointPosition);
+        }
+
+        // 3) Detectar zona de muerte (suelo o plano inferior)
+        if (hit.collider.CompareTag(deathZoneTag))
+        {
+            RespawnAtCheckpoint();
+        }
+
+        // 4) Detectar coleccionables (verde/rojo)
         CollectableItem collectible = hit.collider.GetComponent<CollectableItem>();
         if (collectible != null)
         {
