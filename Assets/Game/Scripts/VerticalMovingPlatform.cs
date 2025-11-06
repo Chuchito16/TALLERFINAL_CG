@@ -22,3 +22,4 @@ public class VerticalMovingPlatform : MonoBehaviour
         transform.position = pos;
     }
 }
+
