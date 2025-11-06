@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Quiz3/ScenesQ/Q1.unity
+    guid: b3d8fdfc325178a4c97e72ba27d7a953
+  - enabled: 1
+    path: Assets/Quiz3/ScenesQ/Q2.unity
+    guid: 2239a4aaeba273d45a8a37ac5f07130b
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:

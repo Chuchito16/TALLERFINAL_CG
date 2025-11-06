@@ -26,6 +26,14 @@ public class PlayerMovement : MonoBehaviour
     private Transform currentPlatform;
     private Vector3 lastPlatformPosition;
 
+    // Checkpoints / Respawn
+    [Header("Checkpoints")]
+    [SerializeField] private Transform defaultSpawnPoint; // punto inicial
+    [SerializeField] private string checkpointTag = "Checkpoint";
+    [SerializeField] private string deathZoneTag = "DeathZone";
+
+    private Vector3 lastCheckpointPosition;
+
     private CharacterController controller;
     private Animator anim;
 
@@ -49,6 +57,12 @@ public class PlayerMovement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+
+        // Posicion inicial del respawn
+        if (defaultSpawnPoint != null)
+            lastCheckpointPosition = defaultSpawnPoint.position;
+        else
+            lastCheckpointPosition = transform.position;
     }
 
     // ====== NUEVO INPUT SYSTEM ======
@@ -63,9 +77,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (ctx.performed)
         {
-            // Debug para verificar que el evento se dispara
-            // Debug.Log("OnJump PERFORMED");
-
             jumpRequest = true;
         }
     }
@@ -138,7 +149,7 @@ public class PlayerMovement : MonoBehaviour
                 // Disparar animacion de salto
                 if (anim != null)
                 {
-                    anim.ResetTrigger(JumpTrig); // opcional, para limpiar
+                    anim.ResetTrigger(JumpTrig); // opcional
                     anim.SetTrigger(JumpTrig);
                 }
             }
@@ -176,6 +187,23 @@ public class PlayerMovement : MonoBehaviour
         lastPlatformPosition = currentPlatform.position;
     }
 
+    private void RespawnAtCheckpoint()
+    {
+        // Deshabilitar el controller para mover sin interferencias
+        controller.enabled = false;
+
+        // Colocar al jugador en el ultimo checkpoint (un poco arriba)
+        Vector3 respawnPos = lastCheckpointPosition + Vector3.up * 0.5f;
+        transform.position = respawnPos;
+
+        // Resetear velocidad y plataforma
+        velocity = Vector3.zero;
+        currentPlatform = null;
+
+        controller.enabled = true;
+    }
+
+    // Collisiones no trigger
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         // 1) Detectar si pisamos una plataforma en movimiento
@@ -188,11 +216,52 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 2) Detectar coleccionables (verde/rojo)
+        // 2) Detectar checkpoints (collider normal)
+        if (hit.collider.CompareTag(checkpointTag))
+        {
+            lastCheckpointPosition = hit.collider.transform.position;
+            Debug.Log("Checkpoint actualizado: " + lastCheckpointPosition);
+        }
+
+        // 3) Detectar zona de muerte (collider normal)
+        if (hit.collider.CompareTag(deathZoneTag))
+        {
+            // Registrar caida en el GameManager
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RegisterFall();
+            }
+
+            RespawnAtCheckpoint();
+        }
+
+        // 4) Detectar coleccionables (si usan collider normal)
         CollectableItem collectible = hit.collider.GetComponent<CollectableItem>();
         if (collectible != null)
         {
             collectible.Collect();
+        }
+    }
+
+    // Collisiones trigger (por si algun checkpoint o deathzone tiene IsTrigger activado)
+    private void OnTriggerEnter(Collider other)
+    {
+        // Checkpoint con IsTrigger
+        if (other.CompareTag(checkpointTag))
+        {
+            lastCheckpointPosition = other.transform.position;
+            Debug.Log("Checkpoint actualizado (Trigger): " + lastCheckpointPosition);
+        }
+
+        // DeathZone con IsTrigger
+        if (other.CompareTag(deathZoneTag))
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RegisterFall();
+            }
+
+            RespawnAtCheckpoint();
         }
     }
 }

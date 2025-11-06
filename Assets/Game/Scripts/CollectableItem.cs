@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class CollectableItem : MonoBehaviour
@@ -10,86 +9,66 @@ public class CollectableItem : MonoBehaviour
         CapsulaRoja
     }
 
+    [Header("Config")]
     public ItemType itemType;
-    public int itemValue = 10;      // Valor base (magnitud). El signo se decide por el tipo.
-    public float clickDistance = 3f;
+    public int itemValue = 10;  // valor base, el signo se decide por el tipo
 
-    private Transform player;
-    private Camera mainCamera;
+    private bool collected = false;  // para evitar recoger dos veces
 
-    void Start()
-    {
-        if (mainCamera == null)
-            mainCamera = Camera.main;
-
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-            player = playerObj.transform;
-    }
-
-    void Update()
-    {
-        // Detectar clic izquierdo
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                if (hit.transform == transform)
-                {
-                    float distance = Vector3.Distance(transform.position, player.position);
-                    if (distance <= clickDistance)
-                    {
-                        CollectItem();
-                    }
-                    else
-                    {
-                        Debug.Log("Demasiado lejos para recoger el item.");
-                    }
-                }
-            }
-        }
-    }
-
-    // === NUEVO: metodo publico que llama a CollectItem ===
+    // Metodo publico por si lo llamas desde otro lado
     public void Collect()
     {
+        if (collected) return;
+        collected = true;
         CollectItem();
     }
 
-    void CollectItem()
+    // Se llama cuando el player entra en el trigger del item
+    private void OnTriggerEnter(Collider other)
     {
+        if (!other.CompareTag("Player")) return;
+        Collect();
+    }
+
+    private void CollectItem()
+    {
+        // Tomamos el valor absoluto y luego decidimos el signo
         int deltaScore = Mathf.Abs(itemValue);
 
-        // Verde suma, roja resta
-        if (itemType == ItemType.CapsulaRoja)
+        bool isPositiveItem = (itemType == ItemType.CapsulaVerde);
+        if (!isPositiveItem)
         {
+            // Capsula roja: resta
             deltaScore = -deltaScore;
         }
 
-        // Sumar al GameManager
+        // Actualizar GameManager
         if (GameManager.Instance != null)
         {
+            // siempre actualiza el score (positivo o negativo)
             GameManager.Instance.AddScore(deltaScore);
-            GameManager.Instance.AddItem();
+
+            // solo contamos items que suman
+            if (isPositiveItem && deltaScore > 0)
+            {
+                GameManager.Instance.AddItem();
+            }
         }
 
         Debug.Log("Recolectado: " + name + " (" + deltaScore + " puntos)");
 
-        Destroy(gameObject);
-
+        // Cambio de escena si ya se recolectaron 15 items positivos
         if (GameManager.Instance != null && GameManager.Instance.ItemsCount >= 15)
         {
             string currentScene = SceneManager.GetActiveScene().name;
-            if (currentScene == "Scene_1")
+            if (currentScene == "Scene_1")   // ojo con el nombre real de tu escena
             {
                 SceneManager.LoadScene("Scene_2");
+                return;
             }
         }
-    }
 
-    public void SetMainCamera(Camera cam)
-    {
-        mainCamera = cam;
+        // Destruir el objeto
+        Destroy(gameObject);
     }
 }

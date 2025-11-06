@@ -1,19 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 public class Timer : MonoBehaviour
 {
-    //#region sonidos
-    //[SerializeField]
-    //private AudioClip stop;
-    //[SerializeField]
-    //private AudioSource respuestaAudio;
-    ////Reloj objReloj;
-    //#endregion
-
     public TextMeshProUGUI timerMinutes;
     public TextMeshProUGUI timerSeconds;
     public TextMeshProUGUI timerSeconds100;
@@ -23,11 +14,15 @@ public class Timer : MonoBehaviour
     private float timerTime;
     private bool isRunning = false;
 
-    public float StopTime { get => stopTime; set => stopTime = value; }
-
-    // Use this for initialization
     void Start()
     {
+        // Si ya hay tiempo acumulado en el GameManager (otra escena),
+        // arrancamos desde ese valor.
+        if (GameManager.Instance != null)
+        {
+            stopTime = GameManager.Instance.GlobalTime;
+        }
+
         TimerStart();
     }
 
@@ -35,7 +30,6 @@ public class Timer : MonoBehaviour
     {
         if (!isRunning)
         {
-            print("START");
             isRunning = true;
             startTime = Time.time;
         }
@@ -45,31 +39,33 @@ public class Timer : MonoBehaviour
     {
         if (isRunning)
         {
-            print("STOP");
             isRunning = false;
             stopTime = timerTime;
-            Debug.Log(stopTime.ToString());
-            /////
-            //if (stopTime >= 30)
-            //{
-            //    respuestaAudio.clip = stop;
-            //    respuestaAudio.Play();
-            //}
 
+            // Guardar el tiempo final en el GameManager
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetTime(stopTime);
+            }
         }
     }
 
     public void TimerReset()
     {
-        print("RESET");
         stopTime = 0;
         isRunning = false;
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetTime(0f);
+        }
+
         timerMinutes.text = timerSeconds.text = timerSeconds100.text = "00";
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // Cronometro base
         timerTime = stopTime + (Time.time - startTime);
         int minutesInt = (int)timerTime / 60;
         int secondsInt = (int)timerTime % 60;
@@ -80,6 +76,12 @@ public class Timer : MonoBehaviour
             timerMinutes.text = (minutesInt < 10) ? "0" + minutesInt : minutesInt.ToString();
             timerSeconds.text = (secondsInt < 10) ? "0" + secondsInt : secondsInt.ToString();
             timerSeconds100.text = (seconds100Int < 10) ? "0" + seconds100Int : seconds100Int.ToString();
+        }
+
+        // Sincronizar con el GameManager cada frame
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetTime(timerTime);
         }
     }
 }

@@ -4,45 +4,51 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    // Tiempo total (lo controla el Timer)
     private float globalTime = 0f;
 
+    // Puntaje, items, caidas
     private int score = 0;
     private int itemsCount = 0;
+    private int fallsCount = 0;
 
-    public float GlobalTime { get => globalTime; set => globalTime = value; }
-    public int Score { get => score; set => score = value; }
-    public int ItemsCount { get => itemsCount; set => itemsCount = value; }
+    // Propiedades de solo lectura
+    public float GlobalTime { get { return globalTime; } }
+    public int Score { get { return score; } }
+    public int ItemsCount { get { return itemsCount; } }
+    public int FallsCount { get { return fallsCount; } }
 
-    void Awake()
+    private void Awake()
     {
         // Singleton
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // opcional, persiste entre escenas
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    // ========= METODOS DE TIEMPO =========
+
+    // El Timer llama a esto para actualizar el tiempo global
+    public void SetTime(float time)
     {
-        
+        globalTime = time;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void ResetAll()
     {
-        
+        globalTime = 0f;
+        score = 0;
+        itemsCount = 0;
+        fallsCount = 0;
     }
 
-    public void AddTime(float timeScene)
-    {
-        globalTime += timeScene;
-    }
+    // ========= METODOS DE SCORE / ITEMS / CAIDAS =========
+
     public void AddScore(int scoreItem)
     {
         score += scoreItem;
@@ -51,5 +57,10 @@ public class GameManager : MonoBehaviour
     public void AddItem()
     {
         itemsCount++;
+    }
+
+    public void RegisterFall()
+    {
+        fallsCount++;
     }
 }
