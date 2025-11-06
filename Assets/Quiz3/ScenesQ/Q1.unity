@@ -403,13 +403,17 @@ PrefabInstance:
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7948210813246342379, guid: 165b44c90adbed542acd1f9164c5012f, type: 3}
+      propertyPath: mouseOrbitCamera
+      value: 
+      objectReference: {fileID: 1529043345}
+    - target: {fileID: 7948210813246342379, guid: 165b44c90adbed542acd1f9164c5012f, type: 3}
       propertyPath: defaultSpawnPoint
       value: 
       objectReference: {fileID: 58296614}
     - target: {fileID: 8925881306962184903, guid: 165b44c90adbed542acd1f9164c5012f, type: 3}
       propertyPath: mouseOrbitCamera
       value: 
-      objectReference: {fileID: 1705063394}
+      objectReference: {fileID: 1529043345}
     - target: {fileID: 8925881306962184903, guid: 165b44c90adbed542acd1f9164c5012f, type: 3}
       propertyPath: thirdPersonCamera
       value: 
@@ -835,6 +839,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectableItem
   itemType: 0
   itemValue: 10
+  clickDistance: 3
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1195,6 +1200,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectableItem
   itemType: 1
   itemValue: 4
+  clickDistance: 3
 --- !u!20 &541546787 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 4074617231798201543, guid: 722d9804edd72a049a867137bfe2ea2e, type: 3}
@@ -1269,6 +1275,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectableItem
   itemType: 1
   itemValue: 4
+  clickDistance: 3
 --- !u!1 &685101270 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 9bbe5c7c266285348b50e5fabfdaa444, type: 3}
@@ -1311,6 +1318,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectableItem
   itemType: 0
   itemValue: 10
+  clickDistance: 3
 --- !u!54 &685101276
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2229,6 +2237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectableItem
   itemType: 1
   itemValue: 4
+  clickDistance: 3
 --- !u!54 &1264378774
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2256,6 +2265,11 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!20 &1529043345 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 8162439350213927027, guid: 63ba1cff3f79ef646937b56299e04266, type: 3}
+  m_PrefabInstance: {fileID: 323669297}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1531094942
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2604,11 +2618,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1676476888}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!20 &1705063394 stripped
-Camera:
-  m_CorrespondingSourceObject: {fileID: 8162439350213927027, guid: 63ba1cff3f79ef646937b56299e04266, type: 3}
-  m_PrefabInstance: {fileID: 323669297}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1876955320
 GameObject:
   m_ObjectHideFlags: 0
@@ -2868,6 +2877,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectableItem
   itemType: 0
   itemValue: 10
+  clickDistance: 3
 --- !u!1 &2093914619
 GameObject:
   m_ObjectHideFlags: 0
@@ -3116,6 +3126,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &5639187827613193542
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.0429
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.25816
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -70.36268
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2987601677359995624, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365353254208594915, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
+      propertyPath: m_Name
+      value: AudioController
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4ad8c75215354d0419a97a60943277a6, type: 3}
 --- !u!1001 &9198993773754527031
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3243,3 +3310,4 @@ SceneRoots:
   - {fileID: 811811142}
   - {fileID: 9198993773754527031}
   - {fileID: 1097761420}
+  - {fileID: 5639187827613193542}
