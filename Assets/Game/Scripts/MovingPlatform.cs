@@ -4,9 +4,9 @@ using UnityEngine;
 public class MovingPlatform : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveDistance = 2f;   // amplitud del movimiento
-    public float moveSpeed = 1f;      // velocidad del movimiento
-    public bool vertical = true;      // true = eje Y, false = eje X
+    public float moveDistance = 2f;
+    public float moveSpeed = 1f; 
+    public bool vertical = true;
 
     private Vector3 startPos;
     private Rigidbody rb;
@@ -14,7 +14,7 @@ public class MovingPlatform : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;      // muy importante
+        rb.isKinematic = true;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
@@ -35,7 +35,7 @@ public class MovingPlatform : MonoBehaviour
         }
         else
         {
-            newPos.x += offset; // o newPos.z si prefieres
+            newPos.x += offset;
         }
 
         rb.MovePosition(newPos);

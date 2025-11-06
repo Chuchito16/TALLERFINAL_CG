@@ -4,17 +4,17 @@ public class AudioController : MonoBehaviour
 {
     public static AudioController Instance;
 
-    [Header("Audio Sources")]
+
     public AudioSource backgroundMusicSource;
     public AudioSource sfxSource;
 
-    [Header("SFX Clips")]
+
     public AudioClip effectOnCaptureBad;
     public AudioClip effectOnCaptureGood;
 
     private void Awake()
     {
-        // Singleton simple
+
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);

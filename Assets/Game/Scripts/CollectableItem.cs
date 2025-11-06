@@ -5,12 +5,12 @@ public class CollectableItem : MonoBehaviour
 {
     public enum ItemType
     {
-        CapsulaVerde,   // suma puntos
-        CapsulaRoja     // resta puntos
+        CapsulaVerde,  
+        CapsulaRoja
     }
 
     public ItemType itemType;
-    public int itemValue = 10;      // valor base positivo
+    public int itemValue = 10;   
     public float clickDistance = 3f;
 
     private Transform player;
@@ -28,7 +28,7 @@ public class CollectableItem : MonoBehaviour
 
     void Update()
     {
-        // Si quieres poder recoger con click usando raycast
+
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -42,7 +42,7 @@ public class CollectableItem : MonoBehaviour
         }
     }
 
-    // Tambien se puede recoger por trigger
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
@@ -51,26 +51,25 @@ public class CollectableItem : MonoBehaviour
         }
     }
 
-    // ESTE es el metodo que llama PlayerMovement
     public void Collect()
     {
-        // Calcular cuanto puntaje suma o resta
+
         int deltaScore = Mathf.Abs(itemValue);
         bool isGood = (itemType == ItemType.CapsulaVerde);
 
         if (!isGood)
         {
-            deltaScore = -deltaScore; // resta si es capsula roja
+            deltaScore = -deltaScore;
         }
 
-        // Actualizar GameManager
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.AddScore(deltaScore);
             GameManager.Instance.AddItem();
         }
 
-        // Sonidos
+
         if (AudioController.Instance != null)
         {
             if (isGood)
@@ -79,7 +78,7 @@ public class CollectableItem : MonoBehaviour
                 AudioController.Instance.PlayCaptureBadSound();
         }
 
-        // Destruir el objeto
+
         Destroy(gameObject);
     }
 }

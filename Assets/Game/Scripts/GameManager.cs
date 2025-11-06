@@ -4,15 +4,15 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    // Tiempo total (lo controla el Timer)
+
     private float globalTime = 0f;
 
-    // Puntaje, items, caidas
+
     private int score = 0;
     private int itemsCount = 0;
     private int fallsCount = 0;
 
-    // Propiedades de solo lectura
+
     public float GlobalTime { get { return globalTime; } }
     public int Score { get { return score; } }
     public int ItemsCount { get { return itemsCount; } }

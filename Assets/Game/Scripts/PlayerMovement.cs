@@ -4,23 +4,23 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("Movimiento")]
+
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 720f;
 
-    [Header("Fisica")]
+
     [SerializeField] private float gravity = -9.81f;
     [SerializeField] private float jumpHeight = 2f;
 
-    [Header("Camara opcional")]
+
     public Camera mouseOrbitCamera;
 
-    [Header("Plataformas en movimiento")]
+
     [SerializeField] private string movingPlatformTag = "MovingPlatform";
     private Transform currentPlatform;
     private Vector3 lastPlatformPosition;
 
-    [Header("Checkpoints")]
+
     [SerializeField] private Transform defaultSpawnPoint;
     [SerializeField] private string checkpointTag = "Checkpoint";
     [SerializeField] private string deathZoneTag = "DeathZone";
@@ -51,7 +51,7 @@ public class PlayerMovement : MonoBehaviour
             lastCheckpointPosition = transform.position;
     }
 
-    // ==== NUEVO INPUT SYSTEM ====
+
     public void OnMove(InputAction.CallbackContext ctx)
     {
         moveInput = ctx.ReadValue<Vector2>();
@@ -65,7 +65,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        // 1) Delta de la plataforma (si estamos sobre una)
+
         Vector3 platformDelta = Vector3.zero;
         if (currentPlatform != null)
         {
@@ -73,13 +73,13 @@ public class PlayerMovement : MonoBehaviour
             lastPlatformPosition = currentPlatform.position;
         }
 
-        // Si ya no estamos tocando el suelo, dejamos de seguir plataforma
+
         if (!controller.isGrounded)
         {
             currentPlatform = null;
         }
 
-        // 2) Direccion de movimiento (relativa a camara si existe)
+
         Vector3 input = new Vector3(moveInput.x, 0f, moveInput.y);
         Vector3 moveWorld;
 
@@ -100,7 +100,7 @@ public class PlayerMovement : MonoBehaviour
             moveWorld = transform.right * input.x + transform.forward * input.z;
         }
 
-        // 3) Rotacion del personaje
+
         Vector3 lookDir = new Vector3(moveWorld.x, 0f, moveWorld.z);
         if (lookDir.sqrMagnitude > 0.001f)
         {
@@ -112,10 +112,10 @@ public class PlayerMovement : MonoBehaviour
             );
         }
 
-        // 4) Movimiento horizontal propio
+
         Vector3 horizontal = moveWorld * moveSpeed;
 
-        // 5) Suelo y salto
+ 
         if (controller.isGrounded)
         {
             if (velocity.y < 0f)
@@ -135,24 +135,24 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 6) Gravedad
+
         velocity.y += gravity * Time.deltaTime;
 
-        // 7) Movimiento final = jugador + plataforma
+
         Vector3 finalMove = horizontal;
         finalMove.y = velocity.y;
 
         Vector3 totalDisplacement = finalMove * Time.deltaTime + platformDelta;
         controller.Move(totalDisplacement);
 
-        // 8) Parametros del Animator
+
         velXCur = Mathf.SmoothDamp(velXCur, moveInput.x, ref velXCur, animDamp);
         velYCur = Mathf.SmoothDamp(velYCur, moveInput.y, ref velYCur, animDamp);
         anim.SetFloat(VelX, velXCur);
         anim.SetFloat(VelY, velYCur);
     }
 
-    // ==== Respawn ====
+
     private void RespawnAtCheckpoint()
     {
         controller.enabled = false;
@@ -164,10 +164,10 @@ public class PlayerMovement : MonoBehaviour
         controller.enabled = true;
     }
 
-    // ==== Colisiones no trigger ====
+
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        // 1) Plataformas en movimiento
+
         if (hit.collider.CompareTag(movingPlatformTag))
         {
             if (currentPlatform != hit.collider.transform)
@@ -177,13 +177,13 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 2) Checkpoints
+
         if (hit.collider.CompareTag(checkpointTag))
         {
             lastCheckpointPosition = hit.collider.transform.position;
         }
 
-        // 3) Zona de muerte
+
         if (hit.collider.CompareTag(deathZoneTag))
         {
             if (GameManager.Instance != null)
@@ -192,7 +192,7 @@ public class PlayerMovement : MonoBehaviour
             RespawnAtCheckpoint();
         }
 
-        // 4) Coleccionables
+
         CollectableItem collectible = hit.collider.GetComponent<CollectableItem>();
         if (collectible != null)
         {
@@ -200,7 +200,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ==== Triggers (por si algun checkpoint o deathzone es trigger) ====
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag(checkpointTag))
