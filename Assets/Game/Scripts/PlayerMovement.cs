@@ -8,205 +8,158 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float rotationSpeed = 720f; // grados/seg
+    [SerializeField] private float rotationSpeed = 720f;
 
     [Header("Physics")]
     [SerializeField] private float gravity = -9.81f;
 
     [Header("Jump")]
-    [SerializeField] private float jumpHeight = 2f; // altura del salto en metros aprox
+    [SerializeField] private float jumpHeight = 2f;
 
     [Header("Optional")]
-    [Tooltip("Si se asigna, el movimiento sera relativo a esta camara (ej: camara orbital).")]
     public Camera mouseOrbitCamera;
 
-    // Plataformas en movimiento
     [Header("Moving Platforms")]
     [SerializeField] private string movingPlatformTag = "MovingPlatform";
     private Transform currentPlatform;
     private Vector3 lastPlatformPosition;
+    private bool onMovingPlatform = false;
 
-    // Checkpoints / Respawn
     [Header("Checkpoints")]
-    [SerializeField] private Transform defaultSpawnPoint; // punto inicial
+    [SerializeField] private Transform defaultSpawnPoint;
     [SerializeField] private string checkpointTag = "Checkpoint";
     [SerializeField] private string deathZoneTag = "DeathZone";
-
     private Vector3 lastCheckpointPosition;
 
     private CharacterController controller;
     private Animator anim;
 
-    // Nuevo Input System: valor actual de la accion "Move"
-    private Vector2 moveInput;           // x: izq-der, y: adelante-atras
-    private Vector3 velocity;            // para gravedad y salto
-
-    // Flag para pedir salto desde el callback y procesarlo en Update
+    private Vector2 moveInput;
+    private Vector3 velocity;
     private bool jumpRequest = false;
 
-    // Hash para parametros del Animator (evita typos y es mas rapido)
     private static readonly int VelX = Animator.StringToHash("velX");
     private static readonly int VelY = Animator.StringToHash("velY");
     private static readonly int JumpTrig = Animator.StringToHash("Jump");
 
-    // Suavizado para el Blend Tree
     [SerializeField] private float animDamp = 0.05f;
-    private float velXCur, velYCur;      // internos para damping
+    private float velXCur, velYCur;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
-
-        // Posicion inicial del respawn
         if (defaultSpawnPoint != null)
             lastCheckpointPosition = defaultSpawnPoint.position;
         else
             lastCheckpointPosition = transform.position;
     }
 
-    // ====== NUEVO INPUT SYSTEM ======
-    // Evento de movimiento
     public void OnMove(InputAction.CallbackContext ctx)
     {
-        moveInput = ctx.ReadValue<Vector2>(); // (-1..1 , -1..1)
+        moveInput = ctx.ReadValue<Vector2>();
     }
 
-    // Evento de salto (solo marca la intencion)
     public void OnJump(InputAction.CallbackContext ctx)
     {
         if (ctx.performed)
-        {
             jumpRequest = true;
-        }
     }
 
     private void Update()
     {
-        // Si no esta en el suelo, olvida la plataforma actual
-        if (!controller.isGrounded)
+        Vector3 platformDelta = Vector3.zero;
+        onMovingPlatform = currentPlatform != null;
+
+        if (onMovingPlatform)
         {
-            currentPlatform = null;
+            platformDelta = currentPlatform.position - lastPlatformPosition;
+            lastPlatformPosition = currentPlatform.position;
         }
 
-        // 1) Calcular direccion de movimiento (relativa a camara si existe)
-        Vector3 input = new Vector3(moveInput.x, 0f, moveInput.y); // x=strafe, z=forward
+        if (!controller.isGrounded)
+            currentPlatform = null;
 
+        // Dirección de movimiento
+        Vector3 input = new Vector3(moveInput.x, 0f, moveInput.y);
         Vector3 moveWorld;
+
         if (mouseOrbitCamera != null && mouseOrbitCamera.gameObject.activeInHierarchy)
         {
-            // plano XZ de la camara
             Vector3 camFwd = mouseOrbitCamera.transform.forward;
             camFwd.y = 0f;
             camFwd.Normalize();
-
             Vector3 camRight = mouseOrbitCamera.transform.right;
             camRight.y = 0f;
             camRight.Normalize();
-
-            // aqui usamos input.x e input.z (no input.y)
             moveWorld = camRight * input.x + camFwd * input.z;
         }
         else
         {
-            // sin camara: usar el sistema local del personaje
             moveWorld = transform.right * input.x + transform.forward * input.z;
         }
 
-        // 2) Rotar hacia la direccion de avance si hay input
+        // Rotación
         Vector3 lookDir = new Vector3(moveWorld.x, 0f, moveWorld.z);
-        if (lookDir.sqrMagnitude > 0.0001f)
+        if (lookDir.sqrMagnitude > 0.001f)
         {
             Quaternion targetRot = Quaternion.LookRotation(lookDir, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRot,
-                rotationSpeed * Time.deltaTime
-            );
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
         }
 
-        // 3) Movimiento horizontal
         Vector3 horizontal = moveWorld * moveSpeed;
 
-        // 4) Manejo de suelo y salto
+        // Ground + salto
         if (controller.isGrounded)
         {
             if (velocity.y < 0f)
-            {
-                // Pequeno empuje hacia abajo para mantener grounded
                 velocity.y = -2f;
-            }
 
             if (jumpRequest)
             {
-                // Formula clasica de salto: v = sqrt(altura * -2 * gravedad)
                 velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 jumpRequest = false;
-
-                // al saltar, ya no seguimos la plataforma
                 currentPlatform = null;
-
-                // Disparar animacion de salto
                 if (anim != null)
                 {
-                    anim.ResetTrigger(JumpTrig); // opcional
+                    anim.ResetTrigger(JumpTrig);
                     anim.SetTrigger(JumpTrig);
                 }
             }
         }
+        else
+        {
+            // Mientras estamos en el aire, no aplicamos la plataforma
+            onMovingPlatform = false;
+        }
 
-        // 5) Aplicar gravedad
+        // Gravedad
         velocity.y += gravity * Time.deltaTime;
 
-        // 6) Mover personaje (horizontal + vertical)
-        Vector3 finalMove = horizontal;
-        finalMove.y = velocity.y;
-        controller.Move(finalMove * Time.deltaTime);
+        // Cuando estamos sobre una plataforma, anulamos micro-correcciones
+        if (onMovingPlatform && controller.isGrounded && velocity.y < 0)
+            velocity.y = 0f;
 
-        // 6b) Aplicar movimiento extra de la plataforma si estamos sobre una
-        HandlePlatformMovement();
+        Vector3 totalMove = (horizontal + velocity) * Time.deltaTime + platformDelta;
+        controller.Move(totalMove);
 
-        // 7) Parametros del Animator (Blend Tree 2D Freeform: velX, velY)
         velXCur = Mathf.SmoothDamp(velXCur, moveInput.x, ref velXCur, animDamp);
         velYCur = Mathf.SmoothDamp(velYCur, moveInput.y, ref velYCur, animDamp);
         anim.SetFloat(VelX, velXCur);
         anim.SetFloat(VelY, velYCur);
     }
 
-    private void HandlePlatformMovement()
-    {
-        if (currentPlatform == null) return;
-
-        Vector3 platformDelta = currentPlatform.position - lastPlatformPosition;
-        if (platformDelta.sqrMagnitude > 0f)
-        {
-            // Este Move extra hace que el player se mueva con la plataforma
-            controller.Move(platformDelta);
-        }
-
-        lastPlatformPosition = currentPlatform.position;
-    }
-
     private void RespawnAtCheckpoint()
     {
-        // Deshabilitar el controller para mover sin interferencias
         controller.enabled = false;
-
-        // Colocar al jugador en el ultimo checkpoint (un poco arriba)
-        Vector3 respawnPos = lastCheckpointPosition + Vector3.up * 0.5f;
-        transform.position = respawnPos;
-
-        // Resetear velocidad y plataforma
+        transform.position = lastCheckpointPosition + Vector3.up * 0.5f;
         velocity = Vector3.zero;
         currentPlatform = null;
-
         controller.enabled = true;
     }
 
-    // Collisiones no trigger
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        // 1) Detectar si pisamos una plataforma en movimiento
         if (hit.collider.CompareTag(movingPlatformTag))
         {
             if (currentPlatform != hit.collider.transform)
@@ -216,26 +169,17 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 2) Detectar checkpoints (collider normal)
         if (hit.collider.CompareTag(checkpointTag))
         {
             lastCheckpointPosition = hit.collider.transform.position;
-            Debug.Log("Checkpoint actualizado: " + lastCheckpointPosition);
         }
 
-        // 3) Detectar zona de muerte (collider normal)
         if (hit.collider.CompareTag(deathZoneTag))
         {
-            // Registrar caida en el GameManager
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.RegisterFall();
-            }
-
+            GameManager.Instance?.RegisterFall();
             RespawnAtCheckpoint();
         }
 
-        // 4) Detectar coleccionables (si usan collider normal)
         CollectableItem collectible = hit.collider.GetComponent<CollectableItem>();
         if (collectible != null)
         {
@@ -243,24 +187,14 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Collisiones trigger (por si algun checkpoint o deathzone tiene IsTrigger activado)
     private void OnTriggerEnter(Collider other)
     {
-        // Checkpoint con IsTrigger
         if (other.CompareTag(checkpointTag))
-        {
             lastCheckpointPosition = other.transform.position;
-            Debug.Log("Checkpoint actualizado (Trigger): " + lastCheckpointPosition);
-        }
 
-        // DeathZone con IsTrigger
         if (other.CompareTag(deathZoneTag))
         {
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.RegisterFall();
-            }
-
+            GameManager.Instance?.RegisterFall();
             RespawnAtCheckpoint();
         }
     }
