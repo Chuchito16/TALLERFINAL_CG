@@ -6,10 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Quiz3/ScenesQ/Q1.unity
+    path: Assets/TallerFinal/ScenesQ/Q1.unity
     guid: b3d8fdfc325178a4c97e72ba27d7a953
   - enabled: 1
-    path: Assets/Quiz3/ScenesQ/CimaDelCielo.unity
+    path: Assets/TallerFinal/ScenesQ/CimaDelCielo.unity
     guid: c55c40c634c51814c8f5f43c37ec8047
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
