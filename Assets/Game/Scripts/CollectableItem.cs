@@ -1,71 +1,82 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class CollectableItem : MonoBehaviour
 {
     public enum ItemType
     {
-        CapsulaVerde,
-        CapsulaRoja
+        CapsulaVerde,   // suma puntos
+        CapsulaRoja     // resta puntos
     }
 
-    [Header("Config")]
     public ItemType itemType;
-    public int itemValue = 10;  // valor base, el signo se decide por el tipo
+    public int itemValue = 10;      // valor base positivo
+    public float clickDistance = 3f;
 
-    private bool collected = false;  // para evitar recoger dos veces
+    private Transform player;
+    private Camera mainCamera;
 
-    // Metodo publico por si lo llamas desde otro lado
-    public void Collect()
+    void Start()
     {
-        if (collected) return;
-        collected = true;
-        CollectItem();
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+            player = playerObj.transform;
     }
 
-    // Se llama cuando el player entra en el trigger del item
+    void Update()
+    {
+        // Si quieres poder recoger con click usando raycast
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                if (hit.collider != null && hit.collider.gameObject == gameObject)
+                {
+                    Collect();
+                }
+            }
+        }
+    }
+
+    // Tambien se puede recoger por trigger
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
-        Collect();
+        if (other.CompareTag("Player"))
+        {
+            Collect();
+        }
     }
 
-    private void CollectItem()
+    // ESTE es el metodo que llama PlayerMovement
+    public void Collect()
     {
-        // Tomamos el valor absoluto y luego decidimos el signo
+        // Calcular cuanto puntaje suma o resta
         int deltaScore = Mathf.Abs(itemValue);
+        bool isGood = (itemType == ItemType.CapsulaVerde);
 
-        bool isPositiveItem = (itemType == ItemType.CapsulaVerde);
-        if (!isPositiveItem)
+        if (!isGood)
         {
-            // Capsula roja: resta
-            deltaScore = -deltaScore;
+            deltaScore = -deltaScore; // resta si es capsula roja
         }
 
         // Actualizar GameManager
         if (GameManager.Instance != null)
         {
-            // siempre actualiza el score (positivo o negativo)
             GameManager.Instance.AddScore(deltaScore);
-
-            // solo contamos items que suman
-            if (isPositiveItem && deltaScore > 0)
-            {
-                GameManager.Instance.AddItem();
-            }
+            GameManager.Instance.AddItem();
         }
 
-        Debug.Log("Recolectado: " + name + " (" + deltaScore + " puntos)");
-
-        // Cambio de escena si ya se recolectaron 15 items positivos
-        if (GameManager.Instance != null && GameManager.Instance.ItemsCount >= 15)
+        // Sonidos
+        if (AudioController.Instance != null)
         {
-            string currentScene = SceneManager.GetActiveScene().name;
-            if (currentScene == "Scene_1")   // ojo con el nombre real de tu escena
-            {
-                SceneManager.LoadScene("Scene_2");
-                return;
-            }
+            if (isGood)
+                AudioController.Instance.PlayCaptureGoodSound();
+            else
+                AudioController.Instance.PlayCaptureBadSound();
         }
 
         // Destruir el objeto
