@@ -1,33 +1,28 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class FollowCamera : MonoBehaviour
 {
+    [Header("Configuracion de seguimiento")]
     public Transform target;               // Objeto a seguir (el jugador)
-    public Vector3 offset = new Vector3(0, 5, -10); // Posicion relativa detras del jugador
-    public float smoothTime = 0.15f;       // Tiempo de suavizado (en segundos aprox)
-
-    private Vector3 currentVelocity = Vector3.zero;
+    public Vector3 offset = new Vector3(0, 5, -10); // Posicion relativa
+    [Range(0.01f, 1f)]
+    public float smoothTime = 0.15f;       // Tiempo de suavizado
 
     private void LateUpdate()
     {
         if (target == null) return;
 
-        // Posicion deseada, relativa a la rotacion del jugador
+        // Posicion deseada
         Vector3 desiredPosition = target.position + target.TransformDirection(offset);
 
-        // Suavizar el movimiento de la camara
-        Vector3 smoothedPosition = Vector3.SmoothDamp(
+        // Suavizado con Lerp (más estable que SmoothDamp)
+        transform.position = Vector3.Lerp(
             transform.position,
             desiredPosition,
-            ref currentVelocity,
-            smoothTime
+            Time.deltaTime / smoothTime
         );
-        transform.position = smoothedPosition;
 
-        // Hacer que la camara mire al jugador
+        // Hacer que mire al jugador
         transform.LookAt(target);
     }
 }
-
