@@ -10,12 +10,13 @@ public class HUDFinalController : MonoBehaviour
     public TMP_Text txtScoreFinal;
     public TMP_Text txtTimeFinal;
     public TMP_Text txtItemsFinal;
+    public TMP_Text txtFallsFinal;   
 
     private bool alreadyShown = false;
 
     void Start()
     {
-        // Al iniciar la escena el panel final debe estar oculto
+
         if (panelFinal != null)
         {
             panelFinal.SetActive(false);
@@ -31,13 +32,13 @@ public class HUDFinalController : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            // Puntos
+
             if (txtScoreFinal != null)
             {
                 txtScoreFinal.text = "Puntos: " + GameManager.Instance.Score.ToString();
             }
 
-            // Tiempo en formato mm:ss
+
             if (txtTimeFinal != null)
             {
                 float t = GameManager.Instance.GlobalTime;
@@ -47,10 +48,14 @@ public class HUDFinalController : MonoBehaviour
                 txtTimeFinal.text = string.Format("Tiempo: {0:00}:{1:00}", minutes, seconds);
             }
 
-            // Items
             if (txtItemsFinal != null)
             {
                 txtItemsFinal.text = "Items: " + GameManager.Instance.ItemsCount.ToString();
+            }
+
+            if (txtFallsFinal != null)
+            {
+                txtFallsFinal.text = "Caidas: " + GameManager.Instance.FallsCount.ToString();
             }
         }
 
@@ -59,7 +64,5 @@ public class HUDFinalController : MonoBehaviour
             panelFinal.SetActive(true);
         }
 
-        // Opcional: pausar el juego
-        // Time.timeScale = 0f;
     }
 }
