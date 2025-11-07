@@ -12,11 +12,7 @@ public class FinishFlag : MonoBehaviour
         // Si no se asigno por inspector, se busca en la escena
         if (hudFinal == null)
         {
-<<<<<<< HEAD
             hudFinal = Object.FindFirstObjectByType<HUDFinalController>();
-=======
-            hudFinal = FindObjectOfType<HUDFinalController>();
->>>>>>> 8119af768d5e9cd3ddeabb33584bbcb2fcf4319d
         }
 
         if (hudFinal != null)
